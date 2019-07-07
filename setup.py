@@ -5,6 +5,13 @@ import re
 
 REPO_URL = "https://github.com/msanders/cider"
 
+def convert_md(source):
+    try:
+        from pypandoc import convert
+        return convert(source, "rst", format="md", encoding="utf8")
+    except (ImportError, OSError):
+        return source
+
 
 def module_attr_re(attr):
     return re.compile(r'__{0}__\s*=\s*(.*)'.format(attr))
@@ -20,7 +27,7 @@ def read_description():
                  "({0}).".format(REPO_URL)
         filter_re = re.compile(r'.*\b(PyPI|Bitdeli)\b.*')
         contents = filter_re.sub("", f.read()) + "\n" + footer
-        return contents.strip()
+        return convert_md(contents).strip()
 
 
 with open("cider/__init__.py", "r") as f:
@@ -43,7 +50,6 @@ ext = Extension(
 setup(
     name='cider',
     author=author,
-    author_email='michael.sanders@fastmail.com',
     version=version,
     url=REPO_URL,
     packages=find_packages(),
@@ -59,7 +65,6 @@ setup(
     ''',
     description='Hassle-free bootstrapping using Homebrew.',
     long_description=read_description(),
-    long_description_content_type='text/markdown',
     license='MIT',
     ext_modules=[ext],
     platforms=["osx"],
